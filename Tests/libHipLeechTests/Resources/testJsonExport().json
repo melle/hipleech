@@ -1,0 +1,34 @@
+{
+  "courses" : [
+    {
+      "name" : "ma - Mathematik",
+      "grades" : [
+        {
+          "points" : 12,
+          "dateString" : "05.02.2020",
+          "remark" : "Test Bruchrechnung",
+          "weight" : "Standard \/ Einfach",
+          "semester" : "1.",
+          "date" : 602550000
+        },
+        {
+          "points" : 8,
+          "dateString" : "06.02.2020",
+          "remark" : "Klassenarbeit",
+          "weight" : "Standard \/ Einfach",
+          "semester" : "1.",
+          "date" : 602636400
+        }
+      ]
+    }
+  ],
+  "oos" : [
+
+  ],
+  "dah" : [
+
+  ],
+  "summary" : [
+
+  ]
+}
