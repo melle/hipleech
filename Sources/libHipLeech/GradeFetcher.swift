@@ -53,12 +53,12 @@ public class GradeFetcher {
             completion(.failure(GradeFetcherError.invalidCredentials(password)))
             return
         }
-        requestCookie { [weak self] cookies in
-            self?.loginRequest(cookies: cookies)
+        requestCookie { [weak self] in
+            self?.loginRequest()
         }
     }
     
-    private func requestCookie(continueBlock: @escaping ([HTTPCookie]) -> ()) {
+    private func requestCookie(continueBlock: @escaping () -> ()) {
         guard let requestURL = URL(string: "\(url)/default.php") else {
             completion(.failure(GradeFetcherError.urlError(url)))
             return
@@ -76,12 +76,14 @@ public class GradeFetcher {
             
             let cookies = HTTPCookie.cookies(withResponseHeaderFields: httpResponse.allHeaderFields as! [String : String],
                                              for: resp.url!)
-            continueBlock(cookies)
+            HTTPCookieStorage.shared.setCookies(cookies, for: resp.url!, mainDocumentURL: nil)
+            
+             continueBlock()
         }
         cookieTask.resume()
     }
     
-    private func loginRequest(cookies: [HTTPCookie]) {
+    private func loginRequest() {
         guard let requestURL = URL(string: "\(url)/login.php") else {
             completion(.failure(GradeFetcherError.urlError(url)))
             return
@@ -89,8 +91,7 @@ public class GradeFetcher {
         var request = URLRequest.init(url: requestURL)
         request.httpMethod = "POST"
         request.httpBody = "username=\(user)&password=\(password)&login=Anmelden".data(using: .utf8)!
-        cookies.forEach { request.addValue($0.value, forHTTPHeaderField: $0.name) }
-        
+
         gradesTask = URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
             if let err = error {
                 self?.completion(.failure(err))
