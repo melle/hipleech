@@ -53,16 +53,17 @@ public class HipCourse: Codable, Equatable {
         return nil
     }
     
-    public var prettyName: String {
+    public func prettyName(format: OutputFormat = .ascii) -> String {
         //Name starts with something like "en - English", we want to cut the first chars
         let idx = (name.firstIndex(of: "-") ) ?? name.startIndex
-        return String(name[name.index(after: idx)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let bold = format == .markdown ? "*" : ""
+        let fullName = String(name[name.index(after: idx)...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        return "\(bold)\(fullName)\(bold)"
     }
     
     public func prettyText(format: OutputFormat = .ascii) -> String {
         let text = """
-                   \(prettyName)
-                   ------------------------
+                   \(prettyName(format: format))\(format == .ascii ? "\n------------------------" : "")
                    \(grades.map { $0.prettyText(format: format) }.joined(separator: "\n"))
                    """
         return text

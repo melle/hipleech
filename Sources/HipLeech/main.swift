@@ -117,22 +117,20 @@ public class HipClient {
         let averages: String = diff.courses.compactMap { (course: HipCourse) in
             if let avg = newTree.course(named: course.name)?.average {
                 let avgString = String(format: "%0.1f", avg)
-                return "Neuer Notenschnitt in \(course.prettyName): \(avgString)"
+                return "\(course.prettyName(format: .ascii)): \(avgString)"
             }
             return nil
         }.joined(separator: "\n")
         
         let totalAverage = String(format: "%0.1f", newTree.totalAverage)
-        
+        let bold = format == .markdown ? "*" : ""
         let result = """
-        \(diff.prettyText(format: format))
-        
-        Notenschnitt
-        ------------------------
-        \(averages)
-        
-        Gesamtschnitt: \(totalAverage)
-        """
+                     \(diff.prettyText(format: format))
+                     
+                     \(bold)Notenschnitt\(bold)\(format == .ascii ? "\n------------------------" : "")
+                     \(averages)
+                     Gesamtschnitt: \(totalAverage)
+                     """
         return result
     }
     
@@ -148,7 +146,7 @@ public class HipClient {
             self.areWeDoneYet = true
             return
         }
-        print(url.absoluteURL)
+
         let task = URLSession.shared.dataTask(with: url) { [weak self] (data, response, error) in
             self?.areWeDoneYet = true
         }

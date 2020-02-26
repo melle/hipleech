@@ -78,7 +78,7 @@ public class GradeFetcher {
                                              for: resp.url!)
             HTTPCookieStorage.shared.setCookies(cookies, for: resp.url!, mainDocumentURL: nil)
             
-             continueBlock()
+            continueBlock()
         }
         cookieTask.resume()
     }
