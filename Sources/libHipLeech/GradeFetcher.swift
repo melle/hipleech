@@ -29,6 +29,19 @@ public enum GradeFetcherError: Error, CustomStringConvertible {
     }
 }
 
+/// URLSession on Linux is broken, we have to disallow redirects and handle this manually.
+public class RedirectBlocker: NSObject, URLSessionTaskDelegate {
+
+    public func urlSession(_ session: URLSession,
+                           task: URLSessionTask,
+                           willPerformHTTPRedirection response: HTTPURLResponse,
+                           newRequest request: URLRequest,
+                           completionHandler: @escaping (URLRequest?) -> Void) {
+        // disable all redirects
+        completionHandler(nil)
+    }
+}
+
 public class GradeFetcher {
     
     private let completion: (Result<String, Error>) -> ()
@@ -36,14 +49,16 @@ public class GradeFetcher {
     let user: String
     let password: String
     var cookieTask: URLSessionDataTask!
+    var loginTask: URLSessionDataTask!
     var gradesTask: URLSessionDataTask!
-
+    var urlSession: URLSession!
     
     public init?(user: String, password: String, url: String, completion: @escaping (Result<String, Error>) -> ()) {
         self.url = url
         self.user = user.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         self.password = password.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         self.completion = completion
+        self.urlSession = URLSession(configuration: URLSessionConfiguration.default, delegate: RedirectBlocker(), delegateQueue: nil)
 
         guard !self.user.isEmpty else {
             completion(.failure(GradeFetcherError.invalidCredentials(user)))
@@ -54,7 +69,9 @@ public class GradeFetcher {
             return
         }
         requestCookie { [weak self] in
-            self?.loginRequest()
+            self?.loginRequest(continueBlock: {
+                self?.fetchGrades()
+            })
         }
     }
     
@@ -63,13 +80,14 @@ public class GradeFetcher {
             completion(.failure(GradeFetcherError.urlError(url)))
             return
         }
-        cookieTask = URLSession.shared.dataTask(with: URLRequest.init(url: requestURL)) { [weak self] (data, response, error) in
+        
+        cookieTask = urlSession.dataTask(with: URLRequest.init(url: requestURL)) { [weak self] (data, response, error) in
             if let err = error {
                 self?.completion(.failure(GradeFetcherError.httpError(err)))
                 return
             }
             
-            guard let resp = response, let httpResponse = (resp as? HTTPURLResponse), httpResponse.statusCode == 200 else {
+            guard let resp = response, let httpResponse = (resp as? HTTPURLResponse), [200, 302].contains(httpResponse.statusCode) else {
                 self?.completion(.failure(GradeFetcherError.response(response.debugDescription)))
                 return
             }
@@ -83,7 +101,7 @@ public class GradeFetcher {
         cookieTask.resume()
     }
     
-    private func loginRequest() {
+    private func loginRequest(continueBlock: @escaping () -> ()) {
         guard let requestURL = URL(string: "\(url)/login.php") else {
             completion(.failure(GradeFetcherError.urlError(url)))
             return
@@ -92,11 +110,36 @@ public class GradeFetcher {
         request.httpMethod = "POST"
         request.httpBody = "username=\(user)&password=\(password)&login=Anmelden".data(using: .utf8)!
 
-        gradesTask = URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
+        loginTask = urlSession.dataTask(with: request) { [weak self] (data, response, error) in
             if let err = error {
                 self?.completion(.failure(err))
                 return
             }
+            guard let resp = response, let httpResponse = (resp as? HTTPURLResponse), [200, 302].contains(httpResponse.statusCode) else {
+                self?.completion(.failure(GradeFetcherError.response(response.debugDescription)))
+                return
+            }
+            continueBlock()
+        }
+        loginTask.resume()
+    }
+
+    private func fetchGrades() {
+        guard let requestURL = URL(string: "\(url)/getdata.php") else {
+            completion(.failure(GradeFetcherError.urlError(url)))
+            return
+        }
+
+        gradesTask = urlSession.dataTask(with: URLRequest.init(url: requestURL)) { [weak self] (data, response, error) in
+            if let err = error {
+                self?.completion(.failure(err))
+                return
+            }
+            guard let resp = response, let httpResponse = (resp as? HTTPURLResponse), [200].contains(httpResponse.statusCode) else {
+                self?.completion(.failure(GradeFetcherError.response(response.debugDescription)))
+                return
+            }
+
             guard let htmlData = data, let html = String(data: htmlData, encoding: .utf8) else {
                 self?.completion(.failure(GradeFetcherError.decoding))
                 return
