@@ -70,7 +70,7 @@ public class HipCourse: Codable, Equatable {
     }
 
     public func prettyTextWithAverage(format: OutputFormat = .ascii) -> String {
-        let averageString = String(format: "%.01f", average)
+        let averageString = String(format: "%.01f", currentAverage)
         let text = """
                    \(prettyText(format: format))
                    
@@ -79,13 +79,32 @@ public class HipCourse: Codable, Equatable {
                    """
         return text
     }
-
+    
+    /// Average over the whole year
     public var average: Double {
         // count all valid (non-nil) grades
         let gradeCount = grades.map { $0.points }.compactMap{ $0 }.reduce(0) { sum, nextPoint in sum + 1 }
         guard gradeCount > 0 else {return 0 }
 
         let averagePoints =  Double(grades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)
+        
+        return (17 - averagePoints)  / 3
+    }
+
+    /// Average for the current Semester
+    public var currentAverage: Double {
+        let firstSemesterGrades = grades.filter({ HipSemester.first == $0.semester })
+        let secondSemesterGrades = grades.filter({ HipSemester.second == $0.semester })
+        // there are second semester grades? Use 2nd, else use the first semester grades
+        let relevantGrades = secondSemesterGrades.count > 0 ? secondSemesterGrades : firstSemesterGrades
+        // count all valid (non-nil) grades
+        let gradeCount = relevantGrades
+            .map { $0.points }
+            .compactMap{ $0 }
+            .reduce(0) { sum, nextPoint in sum + 1 }
+        guard gradeCount > 0 else {return 0 }
+
+        let averagePoints =  Double(relevantGrades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)
         
         return (17 - averagePoints)  / 3
     }

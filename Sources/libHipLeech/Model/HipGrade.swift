@@ -8,6 +8,11 @@
 
 import Foundation
 
+public enum HipSemester: String, RawRepresentable, Codable {
+    case first = "1."
+    case second = "2."
+}
+
 /// A single grade, one can get in a course.
 public class HipGrade: Codable, Equatable, Hashable {
     
@@ -16,7 +21,7 @@ public class HipGrade: Codable, Equatable, Hashable {
     public let points: Int?
     public let remark: String
     public let weight: String
-    public let semester: String
+    public let semester: HipSemester
     
     public init(date: String, grade: String, remark: String, weight: String, semester: String) {
 
@@ -29,7 +34,7 @@ public class HipGrade: Codable, Equatable, Hashable {
         self.points = HipGrade.gradeAsPoints(grade: grade)
         self.remark = remark
         self.weight = weight
-        self.semester = semester
+        self.semester = HipSemester(rawValue: semester) ?? .first
     }
 
     public static func == (lhs: HipGrade, rhs: HipGrade) -> Bool {

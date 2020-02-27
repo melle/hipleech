@@ -53,6 +53,59 @@ class HipCourseTests: XCTestCase {
         let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5])
 
         // then
-        XCTAssertEqual(ma.average, 2.0)        
+        XCTAssertEqual(ma.average, 2.0)
+        XCTAssertEqual(ma.currentAverage, 2.0)
     }
+    
+    func testAverageFirstSemester() {
+        // given
+        let grade1 = HipGrade(date: "", grade: "2+", remark: "", weight: "", semester: "1.")
+        let grade2 = HipGrade(date: "", grade: "2", remark: "", weight: "", semester: "1.")
+        let grade3 = HipGrade(date: "", grade: "2-", remark: "", weight: "", semester: "1.")
+        let grade4 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "1.")
+        let grade5 = HipGrade(date: "", grade: "3", remark: "", weight: "", semester: "1.")
+
+        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5])
+
+        // then
+        XCTAssertEqual(ma.average, 2.0)
+        XCTAssertEqual(ma.currentAverage, 2.0)
+    }
+    
+    func testAverageSecondSemester() {
+        // given
+        let grade1 = HipGrade(date: "", grade: "2+", remark: "", weight: "", semester: "2.")
+        let grade2 = HipGrade(date: "", grade: "2", remark: "", weight: "", semester: "2.")
+        let grade3 = HipGrade(date: "", grade: "2-", remark: "", weight: "", semester: "2.")
+        let grade4 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let grade5 = HipGrade(date: "", grade: "3", remark: "", weight: "", semester: "2.")
+
+        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5])
+
+        // then
+        XCTAssertEqual(ma.average, 2.0)
+        XCTAssertEqual(ma.currentAverage, 2.0)
+    }
+    
+    func testAverageMixedSemesters() {
+        // given
+        let grade1 = HipGrade(date: "", grade: "2+", remark: "", weight: "", semester: "1.")
+        let grade2 = HipGrade(date: "", grade: "2", remark: "", weight: "", semester: "1.")
+        let grade3 = HipGrade(date: "", grade: "2-", remark: "", weight: "", semester: "1.")
+        let grade4 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "1.")
+        let grade5 = HipGrade(date: "", grade: "3", remark: "", weight: "", semester: "1.")
+
+        let grade6 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let grade7 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let grade8 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let grade9 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let gradeA = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+
+        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5, grade6, grade7, grade8, grade9, gradeA])
+
+        // then
+        XCTAssertEqual(ma.average, 1.5)
+        XCTAssertEqual(ma.currentAverage, 1.0)
+    }
+    //  - as soon as we do have grades from the second semester, calculate only the second semester
 }

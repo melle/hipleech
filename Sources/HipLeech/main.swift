@@ -115,7 +115,7 @@ public class HipClient {
         guard diff.courses.count > 0 else { return nil }
         
         let averages: String = diff.courses.compactMap { (course: HipCourse) in
-            if let avg = newTree.course(named: course.name)?.average {
+            if let avg = newTree.course(named: course.name)?.currentAverage {
                 let avgString = String(format: "%0.1f", avg)
                 return "\(course.prettyName(format: .ascii)): \(avgString)"
             }
