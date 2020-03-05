@@ -21,6 +21,7 @@ public class HipClient {
 
     let user: String
     let password: String
+    let previousFile: String?
     let url: String
     let output: OutputFormat
     let token: String?
@@ -30,12 +31,14 @@ public class HipClient {
 
     public init(user: String,
                 password: String,
+                previousFile: String? = nil,
                 url: String,
                 output: OutputFormat = .ascii,
                 token: String? = nil,
                 chatID: String? = nil) {
         self.user = user
         self.password = password
+        self.previousFile = previousFile
         self.url = url
         self.output = output
         self.token = token
@@ -73,7 +76,13 @@ public class HipClient {
     }
 
     fileprivate func previousFileURL() -> URL {
-        return URL.init(fileURLWithPath: FileManager.default.currentDirectoryPath + "/hipleech-previous.json")
+        let path: String
+        if let file = previousFile {
+            path = file
+        } else {
+            path = FileManager.default.currentDirectoryPath + "/hipleech-previous.json"
+        }
+        return URL.init(fileURLWithPath: path)
     }
     
     func previousTree() -> HipTree {
@@ -201,6 +210,6 @@ command(
     Argument<String>("url", description: "Address of the Home.Infopoint installation, i.e. https://www.name-of-the-school.de/homeInfoPoint/")
 ) { output, previousState, token, chatID, username, password, url in
     let out: OutputFormat = output.map { (OutputFormat(rawValue: $0) ?? .ascii) } ?? .ascii
-    HipClient(user: username, password: password, url: url, output: out, token: token, chatID: chatID).run()
+    HipClient(user: username, password: password,  previousFile: previousState, url: url, output: out, token: token, chatID: chatID).run()
    }.run()
 
