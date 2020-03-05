@@ -78,7 +78,13 @@ public class HipTree: Codable, Equatable {
 
         return courses.reduce(0) { (result, course) in result + course.average  } / Double(courses.count)
     }
-    
+
+    public var currentAverage: Double {
+        guard courses.count > 0 else { return 0 }
+
+        return courses.reduce(0) { (result, course) in result + course.currentAverage  } / Double(courses.count)
+    }
+
     public var asJSON: String {
         let je = JSONEncoder.init()
         je.outputFormatting = .prettyPrinted

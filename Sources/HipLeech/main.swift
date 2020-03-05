@@ -136,14 +136,14 @@ public class HipClient {
             return nil
         }.joined(separator: "\n")
         
-        let totalAverage = String(format: "%0.1f", newTree.totalAverage)
+        let currentAverage = String(format: "%0.1f", newTree.currentAverage)
         let bold = format == .markdown ? "*" : ""
         let result = """
                      \(diff.prettyText(format: format))
                      
                      \(bold)Notenschnitt\(bold)\(format == .ascii ? "\n------------------------" : "")
                      \(averages)
-                     Gesamtschnitt: \(totalAverage)
+                     Halbjahresschnitt: \(currentAverage)
                      """
         return result
     }
