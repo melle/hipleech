@@ -34,15 +34,20 @@ public class HipClient {
                 previousFile: String? = nil,
                 url: String,
                 output: OutputFormat = .ascii,
-                token: String? = nil,
-                chatID: String? = nil) {
+                telegram: String? = nil) {
         self.user = user
         self.password = password
         self.previousFile = previousFile
         self.url = url
         self.output = output
-        self.token = token
-        self.chatID = chatID
+        
+        if let parts = telegram?.components(separatedBy: "+"), parts.count == 2 {
+             self.token = parts[0]
+             self.chatID = parts[1]
+        } else {
+            self.token = nil
+            self.chatID = nil
+        }
     }
     
     public func run() {
@@ -187,8 +192,7 @@ let usage =
     Options:
         --output [default: ascii] - Output format, either ascii, json or markdown
         --previousState [default: ] - previous state file in json-format
-        --token [default: ] - Telegram API token
-        --chatID [default: ] - Telegram chat ID (i.e. "-6573342")
+        --token [default: ] - Telegram API token and chat ID, joined by a +, i.e. -t 123456781:DDEFHjcBgo-dkwpsJswEe+-6573342
         --help - complete usage info
     """
 
@@ -203,13 +207,12 @@ command(
         return value
     }),
     Option("previousState", default: nil, flag: "p", description: "previous state file in json-format", validator: { (value) -> String? in return value }),
-    Option("token", default: nil, flag: "t", description: "Telegram API token", validator: { (value) -> String? in return value }),
-    Option("chatID", default: nil, flag: "c", description: "Telegram chat ID (i.e. \"-6573342\")", validator: { (value) -> String? in return value }),
+    Option("token", default: nil, flag: "t", description: "Telegram API token and chat ID, joined by a +, i.e. -t 123456781:DDEFHjcBgo-dkwpsJswEe+-6573342", validator: { (value) -> String? in return value }),
     Argument<String>("username", description: "Username (provided by the school)"),
     Argument<String>("password", description: "Password (provided by the school)"),
     Argument<String>("url", description: "Address of the Home.Infopoint installation, i.e. https://www.name-of-the-school.de/homeInfoPoint/")
-) { output, previousState, token, chatID, username, password, url in
+) { output, previousState, telegram, username, password, url in
     let out: OutputFormat = output.map { (OutputFormat(rawValue: $0) ?? .ascii) } ?? .ascii
-    HipClient(user: username, password: password,  previousFile: previousState, url: url, output: out, token: token, chatID: chatID).run()
+    HipClient(user: username, password: password,  previousFile: previousState, url: url, output: out, telegram: telegram).run()
    }.run()
 
