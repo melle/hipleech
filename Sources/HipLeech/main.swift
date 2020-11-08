@@ -19,6 +19,7 @@ public class HipClient {
     // FIXME: use Promises 🙄
     var areWeDoneYet = false
 
+    let nickname: String
     let user: String
     let password: String
     let previousFile: String?
@@ -29,12 +30,14 @@ public class HipClient {
     
     var gradeFetcher: GradeFetcher!
 
-    public init(user: String,
+    public init(nickname: String,
+                user: String,
                 password: String,
                 previousFile: String? = nil,
                 url: String,
                 output: OutputFormat = .ascii,
                 telegram: String? = nil) {
+        self.nickname = nickname
         self.user = user
         self.password = password
         self.previousFile = previousFile
@@ -105,7 +108,7 @@ public class HipClient {
     
     func handleNewTree(_ tree: HipTree) {
         
-        guard let message = buildMessage(newTree: tree, format: output) else {
+        guard let message = buildMessage(newTree: tree, format: output, nickname: nickname) else {
             areWeDoneYet = true
             return
         }
@@ -123,7 +126,7 @@ public class HipClient {
         // areWeDoneYet = true
     }
     
-    func buildMessage(newTree: HipTree, format: OutputFormat = .ascii) -> String? {
+    func buildMessage(newTree: HipTree, format: OutputFormat = .ascii, nickname: String) -> String? {
         
         let diff = HipTree.diff(oldTree: previousTree(), newTree: newTree)
         guard diff.courses.count > 0 else { return nil }
@@ -139,6 +142,8 @@ public class HipClient {
         let currentAverage = String(format: "%0.1f", newTree.currentAverage)
         let bold = format == .markdown ? "*" : ""
         let result = """
+                     🎓 \(bold)\(nickname)\(bold) 👨‍🏫
+
                      \(diff.prettyText(format: format))
                      
                      \(bold)Notenschnitt\(bold)\(format == .ascii ? "\n------------------------" : "")
@@ -171,7 +176,7 @@ public class HipClient {
 
 // MARK: - 🎛 Command Line handling
 
-// Commander does not prints the usage if an argument is missing. We're partially duplicating the usage here:
+// Commander does not print the usage if an argument is missing. We're partially duplicating the usage here:
 let usage =
     """
     HipLeech - grade information from a given cevex Home.InfoPoint website. The output can be formatted as
@@ -181,10 +186,11 @@ let usage =
 
     Usage:
 
-        $ .build/x86_64-apple-macosx/debug/HipLeech <username> <password> <url>
+        $ .build/x86_64-apple-macosx/debug/HipLeech <nickname> <username> <password> <url>
 
     Arguments:
 
+        nickname - Used in the report only, helps to distuinguish multiple reports
         username - Username (provided by the school)
         password - Password (provided by the school)
         url - Address of the Home.Infopoint installation, i.e. https://www.name-of-the-school.de/homeInfoPoint/
@@ -208,11 +214,18 @@ command(
     }),
     Option("previousState", default: nil, flag: "p", description: "previous state file in json-format", validator: { (value) -> String? in return value }),
     Option("token", default: nil, flag: "t", description: "Telegram API token and chat ID, joined by a +, i.e. -t 123456781:DDEFHjcBgo-dkwpsJswEe+-6573342", validator: { (value) -> String? in return value }),
+    Argument<String>("nickname", description: "Used in the report only, helps to distuinguish multiple reports"),
     Argument<String>("username", description: "Username (provided by the school)"),
     Argument<String>("password", description: "Password (provided by the school)"),
     Argument<String>("url", description: "Address of the Home.Infopoint installation, i.e. https://www.name-of-the-school.de/homeInfoPoint/")
-) { output, previousState, telegram, username, password, url in
+) { output, previousState, telegram, nickname, username, password, url in
     let out: OutputFormat = output.map { (OutputFormat(rawValue: $0) ?? .ascii) } ?? .ascii
-    HipClient(user: username, password: password,  previousFile: previousState, url: url, output: out, telegram: telegram).run()
+    HipClient(nickname: nickname,
+              user: username,
+              password: password,
+              previousFile: previousState,
+              url: url,
+              output: out,
+              telegram: telegram).run()
    }.run()
 
