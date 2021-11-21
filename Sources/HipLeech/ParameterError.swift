@@ -2,7 +2,7 @@
 //  File.swift
 //  
 //
-//  Created by Thomas Mellenthin (Privat) on 20.02.20.
+//  Created by Thomas Mellenthin on 20.02.20.
 //
 
 import Foundation

@@ -2,7 +2,7 @@
 //  File.swift
 //  
 //
-//  Created by Thomas Mellenthin (Privat) on 17.02.20.
+//  Created by Thomas Mellenthin on 17.02.20.
 //
 
 import Foundation
@@ -16,7 +16,7 @@ import libHipLeech
 
 public class HipClient {
     
-    // FIXME: use Promises 🙄
+    // FIXME: use Promises / combine, whatever, but not this 🙄
     var areWeDoneYet = false
 
     let nickname: String
@@ -115,7 +115,6 @@ public class HipClient {
         
         // save new tree
         do {
-            print("writing to \(previousFileURL())")
             try tree.asJSON.data(using: .utf8)?.write(to: previousFileURL())
         } catch {
             print(error.localizedDescription)

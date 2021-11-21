@@ -1,8 +1,8 @@
 //
-//  File.swift
+//  OutputFormat.swift
 //  
 //
-//  Created by Thomas Mellenthin (Privat) on 21.02.20.
+//  Created by Thomas Mellenthin on 21.02.20.
 //
 
 import Foundation

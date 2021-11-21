@@ -2,8 +2,8 @@
 //  HipTreeTests.swift
 //  hipleechTests
 //
-//  Created by Thomas Mellenthin (Privat) on 13.02.20.
-//  Copyright © 2020 Thomas Mellenthin (Privat). All rights reserved.
+//  Created by Thomas Mellenthin on 13.02.20.
+//  Copyright © 2020 Thomas Mellenthin. All rights reserved.
 //
 
 import XCTest

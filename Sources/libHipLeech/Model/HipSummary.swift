@@ -2,8 +2,8 @@
 //  HipSummary.swift
 //  hipleech
 //
-//  Created by Thomas Mellenthin (Privat) on 12.02.20.
-//  Copyright © 2020 Thomas Mellenthin (Privat). All rights reserved.
+//  Created by Thomas Mellenthin on 12.02.20.
+//  Copyright © 2020 Thomas Mellenthin. All rights reserved.
 //
 
 import Foundation
