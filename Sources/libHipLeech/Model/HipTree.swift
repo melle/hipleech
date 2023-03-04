@@ -95,7 +95,7 @@ public class HipTree: Codable, Equatable {
         guard courses.count > 0 else { return 0 }
         let currentSemester = currentSemester
         let allGrades: [HipGrade] = courses.reduce([]) { partialResult, course in
-            course.allGrades.filter { grade in
+            partialResult + course.allGrades.filter { grade in
                 grade.semester == currentSemester
             }
         }
