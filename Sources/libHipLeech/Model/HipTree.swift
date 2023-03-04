@@ -73,16 +73,39 @@ public class HipTree: Codable, Equatable {
                """
     }
 
+    public var currentSemester: HipSemester {
+        // find any course with a grade for the second semester -> second
+        guard courses.contains(where: { course in
+            course.allGrades.contains { grade in grade.semester == .second }
+        }) else {
+            // no grade for the second semester
+            return .first
+        }
+        // there is at least one grade for the second semester
+        return .second
+    }
+    
     public var totalAverage: Double {
         guard courses.count > 0 else { return 0 }
 
         return courses.reduce(0) { (result, course) in result + course.average  } / Double(courses.count)
     }
 
-    public var currentAverage: Double {
+    public var currentSemesterAverage: Double {
         guard courses.count > 0 else { return 0 }
+        let currentSemester = currentSemester
+        let allGrades: [HipGrade] = courses.reduce([]) { partialResult, course in
+            course.allGrades.filter { grade in
+                grade.semester == currentSemester
+            }
+        }
+        // count all valid (non-nil) grades
+        let gradeCount = allGrades.count
+        guard gradeCount > 0 else { return 0 }
 
-        return courses.reduce(0) { (result, course) in result + course.currentAverage  } / Double(courses.count)
+        let averagePoints =  Double(allGrades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)
+        // Points -> grade
+        return (17 - averagePoints)  / 3
     }
 
     public var asJSON: String {

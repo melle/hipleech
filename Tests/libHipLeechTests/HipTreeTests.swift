@@ -153,4 +153,35 @@ class HipTreeTests: XCTestCase {
         XCTAssertEqual(sut, expected)
     }
 
+    func testSemesterAverage() {
+        // given
+        let grade1 = HipGrade(date: "", grade: "2+", remark: "", weight: "", semester: "1.")
+        let grade2 = HipGrade(date: "", grade: "2", remark: "", weight: "", semester: "1.")
+        let grade3 = HipGrade(date: "", grade: "2-", remark: "", weight: "", semester: "1.")
+        let grade4 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "1.")
+        let grade5 = HipGrade(date: "", grade: "3", remark: "", weight: "", semester: "1.")
+
+        let grade6 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let grade7 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let grade8 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let grade9 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+        let gradeA = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "2.")
+
+        // mixed 1 / 2 semester
+        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5, grade6, grade7, grade8, grade9, gradeA])
+        // only 1st semester
+        let et = HipCourse(name: "et - Ethik", grades: [grade1, grade2, grade3, grade4, grade5])
+
+        let sut1 = HipTree()
+        sut1.courses = [et]
+
+        let sut2 = HipTree()
+        sut2.courses = [ma, et]
+
+        // then
+        XCTAssertEqual(sut1.currentSemester, .first)
+        XCTAssertEqual(sut2.currentSemester, .second)
+        XCTAssertEqual(et.currentAverage, 2.0)
+        XCTAssertEqual(ma.currentAverage, 1.0)
+    }
 }

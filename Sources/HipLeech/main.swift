@@ -138,7 +138,7 @@ public class HipClient {
             return nil
         }.joined(separator: "\n")
         
-        let currentAverage = String(format: "%0.1f", newTree.currentAverage)
+        let currentAverage = String(format: "%0.1f", newTree.currentSemesterAverage)
         let bold = format == .markdown ? "*" : ""
         let result = """
                      🎓 \(bold)\(nickname)\(bold) 👨‍🏫
