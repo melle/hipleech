@@ -97,7 +97,14 @@ public class HipTree: Codable, Equatable {
     public var totalAverage: Double {
         guard courses.count > 0 else { return 0 }
 
-        return courses.reduce(0) { (result, course) in result + course.average  } / Double(courses.count)
+        let grades = courses
+            .map { $0.allGrades }
+            .flatMap { $0 }
+            .map({ $0.points }) // filter nil-points
+            .compactMap { $0 }
+        
+        let gradesSum = grades.reduce(0, { partialResult, points in partialResult + points })
+        return HipGrade.pointsAsGrade(points: Double(gradesSum) / Double(grades.count))
     }
 
     public var currentSemesterAverage: Double {
@@ -109,7 +116,7 @@ public class HipTree: Codable, Equatable {
             }
         }
         // count all valid (non-nil) grades
-        let gradeCount = allGrades.count
+        let gradeCount = allGrades.filter { $0.points != nil }.count
         guard gradeCount > 0 else { return 0 }
 
         let averagePoints =  Double(allGrades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)

@@ -75,7 +75,12 @@ public class HipGrade: Codable, Equatable, Hashable {
         default: return nil
         }
     }
+
     
+    public static func pointsAsGrade(points: Double) -> Double {
+        (17 - points) / 3
+    }
+
     public static func pointsAsGrade(points: Int) -> String {
         guard points >= 0 && points <= 15 else { return "??" }
         
