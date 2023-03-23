@@ -65,6 +65,12 @@ public class GradeParser {
                         let summary = HipSummary(key: try col[0].text(),
                                             value: try col[1].text())
                         tree.summary.append(summary)
+                    } else if try courses[i].text() == "Vergessene Hausaufgaben" {
+                        let dah = HipDogAteHomework(date: try col[0].text(),
+                                                    period: try col[1].text(),
+                                                    courseName: try col[2].text(),
+                                                    remark: try col[3].text())
+                        tree.dah.append(dah)
                     } else {
                         print("⚠️ Ignoring Row \(try row.text())")
                     }

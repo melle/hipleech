@@ -46,8 +46,8 @@ public class HipTree: Codable, Equatable {
             }
             return newCourse
         }
-
         diffTree.courses.append(contentsOf: diffCourses)
+        diffTree.dah = HipDogAteHomework.diff(lhs: oldTree.dah, rhs: newTree.dah)
         
         return diffTree
     }
@@ -57,7 +57,16 @@ public class HipTree: Codable, Equatable {
     }
     
     public func prettyText(format: OutputFormat = .ascii) -> String {
-        return courses.map { $0.prettyText(format: format) }.joined(separator: "\n\n")
+        let courses = courses.map { $0.prettyText(format: format) }
+        
+        let dahBody = dah.map { $0.prettyText(format: format) }
+        let dahHeadline = """
+                          🐶 The dog ate my homework 📝
+                          -----------------------------
+                          """
+        let dah: [String] = (dahBody.count > 0 ? [dahHeadline] : []) + dahBody
+        
+        return (courses + dah).joined(separator: "\n\n")
     }
     
     public func prettyTextWithAverage(format: OutputFormat = .ascii) -> String {

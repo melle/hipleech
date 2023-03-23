@@ -8,7 +8,7 @@
 
 import Foundation
 
-public class HipDogAteHomework: Equatable, Codable {
+public struct HipDogAteHomework: Hashable, Equatable, Codable {
     let date: String
     let period: String
     let courseName: String
@@ -27,4 +27,20 @@ public class HipDogAteHomework: Equatable, Codable {
             && lhs.courseName == rhs.courseName
             && lhs.remark == rhs.remark
     }
+    
+    /// Diffs two DogAteHomework entries. The difference is returned as new DaH or nil, if both DoHs are requal.
+    public static func diff(lhs: [HipDogAteHomework], rhs: [HipDogAteHomework]) -> [HipDogAteHomework] {
+        let lhSet = Set(lhs)
+        let rhSet = Set(rhs)
+        let diff = lhSet.symmetricDifference(rhSet)
+        let newDogAteHomework = Array(diff).sorted(by: { $0.date < $1.date })
+
+        return newDogAteHomework
+    }
+    
+    public func prettyText(format: OutputFormat = .ascii) -> String {
+        let bold = (format == .markdown) ? "*" : ""
+        return "\(bold)\(courseName) (\(period). Std.)\(bold)\t\(remark) (\(date))"
+    }
+
 }

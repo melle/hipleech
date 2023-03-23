@@ -128,7 +128,7 @@ public class HipClient {
     func buildMessage(newTree: HipTree, format: OutputFormat = .ascii, nickname: String) -> String? {
         
         let diff = HipTree.diff(oldTree: previousTree(), newTree: newTree)
-        guard diff.courses.count > 0 else { return nil }
+        guard diff.courses.count > 0 || diff.dah.count > 0 else { return nil }
         
         let averages: String = diff.courses.compactMap { (course: HipCourse) in
             if let avg = newTree.course(named: course.name)?.currentAverage {
