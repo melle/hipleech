@@ -49,8 +49,9 @@ class HipCourseTests: XCTestCase {
         let grade3 = HipGrade(date: "", grade: "2-", remark: "", weight: "", semester: "")
         let grade4 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "")
         let grade5 = HipGrade(date: "", grade: "3", remark: "", weight: "", semester: "")
+        let grade6 = HipGrade(date: "", grade: "A", remark: "", weight: "", semester: "")
 
-        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5])
+        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5, grade6])
 
         // then
         XCTAssertEqual(ma.average, 2.0)
@@ -64,8 +65,10 @@ class HipCourseTests: XCTestCase {
         let grade3 = HipGrade(date: "", grade: "2-", remark: "", weight: "", semester: "1.")
         let grade4 = HipGrade(date: "", grade: "1", remark: "", weight: "", semester: "1.")
         let grade5 = HipGrade(date: "", grade: "3", remark: "", weight: "", semester: "1.")
+        let grade6 = HipGrade(date: "", grade: "A", remark: "", weight: "", semester: "1.")
+        let grade7 = HipGrade(date: "", grade: "A", remark: "", weight: "", semester: "1.")
 
-        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5])
+        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3, grade4, grade5, grade6, grade7])
 
         // then
         XCTAssertEqual(ma.average, 2.0)

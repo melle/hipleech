@@ -95,28 +95,27 @@ public class HipTree: Codable, Equatable {
     }
     
     public var totalAverage: Double {
-        guard courses.count > 0 else { return 0 }
-
-        let grades = courses
-            .map { $0.allGrades }
-            .flatMap { $0 }
-            .map({ $0.points }) // filter nil-points
-            .compactMap { $0 }
-        
-        let gradesSum = grades.reduce(0, { partialResult, points in partialResult + points })
-        return HipGrade.pointsAsGrade(points: Double(gradesSum) / Double(grades.count))
+        averageGrade(currentSemesterOnly: false)
     }
 
     public var currentSemesterAverage: Double {
-        guard courses.count > 0 else { return 0 }
-        let currentSemester = currentSemester
-        let allGrades: [HipGrade] = courses.reduce([]) { partialResult, course in
-            partialResult + course.allGrades.filter { grade in
-                grade.semester == currentSemester
-            }
+        averageGrade(currentSemesterOnly: true)
+    }
+    
+    private func averageGrade(currentSemesterOnly: Bool) -> Double {
+        func include(grade: HipGrade, currentSemesterOnly: Bool) -> Bool {
+            // semester filer && ignore all non-grades like "A"
+            return (currentSemesterOnly ? grade.semester == currentSemester : true) // && grade.points != nil
         }
+
+        guard courses.count > 0 else { return 0 }
+        let allGrades: [HipGrade] = courses
+            .map{ $0.allGrades }
+            .flatMap { $0 } // flatten the 2 dimensional array
+            .filter { include(grade: $0, currentSemesterOnly: currentSemesterOnly) }
+
         // count all valid (non-nil) grades
-        let gradeCount = allGrades.filter { $0.points != nil }.count
+        let gradeCount = allGrades.count
         guard gradeCount > 0 else { return 0 }
 
         let averagePoints =  Double(allGrades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)
