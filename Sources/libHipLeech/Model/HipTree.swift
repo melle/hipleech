@@ -125,7 +125,7 @@ public class HipTree: Codable, Equatable {
 
     public var asJSON: String {
         let je = JSONEncoder.init()
-        je.outputFormatting = .prettyPrinted
+        je.outputFormatting = [.prettyPrinted, .sortedKeys]
         var json = ""
         do {
             let jsonData = try je.encode(self)
