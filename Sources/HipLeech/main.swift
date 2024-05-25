@@ -16,9 +16,6 @@ import libHipLeech
 
 public class HipClient {
     
-    // FIXME: use Promises / combine, whatever, but not this 🙄
-    var areWeDoneYet = false
-
     let nickname: String
     let user: String
     let password: String
@@ -54,6 +51,10 @@ public class HipClient {
     }
     
     public func run() {
+        // Create a DispatchGroup
+        let group = DispatchGroup()
+        group.enter()
+        
         guard let fetcher = GradeFetcher(user: self.user, password: self.password, url: self.url, completion: { [weak self] (result) in
             switch result {
             case .success(let html):
@@ -64,23 +65,20 @@ public class HipClient {
                     self?.handleNewTree(tree)
                 case .failure(let error ):
                     print(error.localizedDescription)
-                    self?.areWeDoneYet = true
                 }
                 break
                 
             case .failure(let error):
                 print(error.localizedDescription)
-                self?.areWeDoneYet = true
                 break
             }
+            group.leave()
         }) else {
+            group.leave()
             return
         }
         self.gradeFetcher = fetcher
-        
-        while false == areWeDoneYet {
-            RunLoop.main.run(until: Date.init(timeIntervalSinceNow: 0.01))
-        }
+        group.wait()
     }
 
     fileprivate func previousFileURL() -> URL {
@@ -107,9 +105,7 @@ public class HipClient {
     }
     
     func handleNewTree(_ tree: HipTree) {
-        
         guard let message = buildMessage(newTree: tree, format: output, nickname: nickname) else {
-            areWeDoneYet = true
             return
         }
         
@@ -156,19 +152,16 @@ public class HipClient {
     
     func sendTelegram(message: String) {
         guard let telegramToken = self.token, let telegramChatID = self.chatID else {
-            self.areWeDoneYet = true
             return
         }
         
         let encodedMsg = message.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "<nil>"
         let parseMode = output == .markdown ? "&parse_mode=Markdown" : ""
         guard let url = URL(string: "https://api.telegram.org/bot\(telegramToken)/sendMessage?chat_id=\(telegramChatID)&text=\(encodedMsg)\(parseMode)") else {
-            self.areWeDoneYet = true
             return
         }
 
-        let task = URLSession.shared.dataTask(with: url) { [weak self] (data, response, error) in
-            self?.areWeDoneYet = true
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
         }
         task.resume()
     }
