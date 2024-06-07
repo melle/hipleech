@@ -115,10 +115,10 @@ public class HipTree: Codable, Equatable {
             .filter { include(grade: $0, currentSemesterOnly: currentSemesterOnly) }
 
         // count all valid (non-nil) grades
-        let gradeCount = allGrades.count
+        let allPoints: [Int] = allGrades.compactMap { $0.points }
+        let gradeCount = allPoints.count
         guard gradeCount > 0 else { return 0 }
-
-        let averagePoints =  Double(allGrades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)
+        let averagePoints =  Double(allPoints.reduce(0) { $0 + $1 }) / Double(gradeCount)
         // Points -> grade
         return (17 - averagePoints)  / 3
     }
