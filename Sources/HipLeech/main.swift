@@ -118,7 +118,6 @@ public class HipClient {
         
         print(message)
         sendTelegram(message: message)
-        // areWeDoneYet = true
     }
     
     func buildMessage(newTree: HipTree, format: OutputFormat = .ascii, nickname: String) -> String? {
@@ -161,9 +160,15 @@ public class HipClient {
             return
         }
 
+        let semaphore = DispatchSemaphore(value: 0)
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            if let error {
+                print(error.localizedDescription)
+            }
+            semaphore.signal()
         }
         task.resume()
+        semaphore.wait()
     }
 
 }
