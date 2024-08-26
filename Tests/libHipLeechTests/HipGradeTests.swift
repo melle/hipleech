@@ -39,7 +39,15 @@ class HipGradeTests: XCTestCase {
         let mark = HipGrade(date: "21.02.2019", grade: "3+", remark: "Testnote in Grinsen", weight: "Einfach / Standard", semester: "1.")
         
         // then
-        XCTAssertEqual("3+\tTestnote in Grinsen (21.02.2019)", mark.prettyText())
+        XCTAssertEqual("3+\tTestnote in Grinsen (21.02.2019)", mark.prettyText(usePoints: false))
+    }
+    
+    func testPrettyPrintInPoints() {
+        // when
+        let mark = HipGrade(date: "21.02.2019", grade: "3+", remark: "Testnote in Grinsen", weight: "Einfach / Standard", semester: "1.")
+        
+        // then
+        XCTAssertEqual("3+ (9 Punkte)\tTestnote in Grinsen (21.02.2019)", mark.prettyText(usePoints: true))
     }
     
     func testPointsToGrades() {

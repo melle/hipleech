@@ -181,7 +181,7 @@ class HipTreeTests: XCTestCase {
         // then
         XCTAssertEqual(sut1.currentSemester, .first)
         XCTAssertEqual(sut2.currentSemester, .second)
-        XCTAssertEqual(et.currentAverage, 2.0)
-        XCTAssertEqual(ma.currentAverage, 1.0)
+        XCTAssertEqual(et.currentAverage(as: .grades), 2.0)
+        XCTAssertEqual(ma.currentAverage(as: .grades), 1.0)
     }
 }

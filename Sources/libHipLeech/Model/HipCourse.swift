@@ -61,18 +61,18 @@ public class HipCourse: Codable, Equatable {
         return "\(bold)\(fullName)\(bold)"
     }
     
-    public func prettyText(format: OutputFormat = .ascii) -> String {
+    public func prettyText(format: OutputFormat = .ascii, usePoints: Bool) -> String {
         let text = """
                    \(prettyName(format: format))\(format == .ascii ? "\n------------------------" : "")
-                   \(grades.map { $0.prettyText(format: format) }.joined(separator: "\n"))
+                   \(grades.map { $0.prettyText(format: format, usePoints: usePoints) }.joined(separator: "\n"))
                    """
         return text
     }
 
-    public func prettyTextWithAverage(format: OutputFormat = .ascii) -> String {
-        let averageString = String(format: "%.01f", currentAverage)
+    public func prettyTextWithAverage(format: OutputFormat = .ascii, score: ScoreFormat) -> String {
+        let averageString = String(format: "%.01f", currentAverage(as: score))
         let text = """
-                   \(prettyText(format: format))
+                   \(prettyText(format: format, usePoints: score == .points))
                    
                    Durchschnitt: \(averageString)
                    
@@ -92,7 +92,16 @@ public class HipCourse: Codable, Equatable {
     }
 
     /// Average for the current Semester
-    public var currentAverage: Double {
+    public func currentAverage(as format: ScoreFormat) -> Double {
+        switch format {
+        case .grades:
+            (17 - currentAveragePoints)  / 3
+        case .points:
+            currentAveragePoints
+        }
+    }
+
+    private var currentAveragePoints: Double {
         let firstSemesterGrades = grades.filter({ HipSemester.first == $0.semester })
         let secondSemesterGrades = grades.filter({ HipSemester.second == $0.semester })
         // there are second semester grades? Use 2nd, else use the first semester grades
@@ -106,6 +115,6 @@ public class HipCourse: Codable, Equatable {
 
         let averagePoints =  Double(relevantGrades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)
         
-        return (17 - averagePoints)  / 3
+        return averagePoints
     }
 }

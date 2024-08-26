@@ -22,6 +22,7 @@ public class HipClient {
     let previousFile: String?
     let url: String
     let output: OutputFormat
+    let scoreFormat: ScoreFormat
     let token: String?
     let chatID: String?
     
@@ -33,6 +34,7 @@ public class HipClient {
                 previousFile: String? = nil,
                 url: String,
                 output: OutputFormat = .ascii,
+                scoreFormat: ScoreFormat = .grades,
                 telegram: String? = nil) {
         self.nickname = nickname
         self.user = user
@@ -40,6 +42,7 @@ public class HipClient {
         self.previousFile = previousFile
         self.url = url
         self.output = output
+        self.scoreFormat = scoreFormat
         
         if let parts = telegram?.components(separatedBy: "+"), parts.count == 2 {
              self.token = parts[0]
@@ -59,10 +62,10 @@ public class HipClient {
             switch result {
             case .success(let html):
                 
-                let res = GradeParser.parse(html: html)
+                let res = GradeParser.parse(html: html, scoreFormat: self?.scoreFormat ?? .grades)
                 switch (res) {
                 case .success(let tree):
-                    self?.handleNewTree(tree)
+                    self?.handleNewTree(tree, score: self?.scoreFormat ?? .grades)
                 case .failure(let error ):
                     print(error.localizedDescription)
                 }
@@ -104,8 +107,8 @@ public class HipClient {
         return HipTree.from(json: previousData)
     }
     
-    func handleNewTree(_ tree: HipTree) {
-        guard let message = buildMessage(newTree: tree, format: output, nickname: nickname) else {
+    func handleNewTree(_ tree: HipTree, score: ScoreFormat) {
+        guard let message = buildMessage(newTree: tree, previousTree: previousTree(), format: output, score: score, nickname: nickname) else {
             return
         }
         
@@ -120,31 +123,58 @@ public class HipClient {
         sendTelegram(message: message)
     }
     
-    func buildMessage(newTree: HipTree, format: OutputFormat = .ascii, nickname: String) -> String? {
+    func buildMessage(newTree: HipTree, previousTree: HipTree, format: OutputFormat = .ascii, score: ScoreFormat, nickname: String) -> String? {
         
-        let diff = HipTree.diff(oldTree: previousTree(), newTree: newTree)
+        let diff = HipTree.diff(oldTree: previousTree, newTree: newTree)
         guard diff.courses.count > 0 || diff.dah.count > 0 else { return nil }
         
         let averages: String = diff.courses.compactMap { (course: HipCourse) in
-            if let avg = newTree.course(named: course.name)?.currentAverage {
-                let avgString = String(format: "%0.1f", avg)
+            if let course = newTree.course(named: course.name) {
+                let avgString: String
+                switch score {
+                case .grades:
+                    avgString = String(format: "%0.2f", course.currentAverage(as: score))
+                case .points:
+                    avgString = String(format: "%0.2f (%0.2f Punkte)", course.currentAverage(as: .grades), course.currentAverage(as: .points))
+                }
                 return "\(course.prettyName(format: .ascii)): \(avgString)"
             }
             return nil
         }.joined(separator: "\n")
         
-        let currentAverage = String(format: "%0.1f", newTree.currentSemesterAverage)
-        let totalAverage = String(format: "%0.1f", newTree.totalAverage)
+        let currentAverage: String
+        let totalAverage: String
+        let totalPoints: String
+        switch score {
+        case .grades:
+            currentAverage = String(format: "%0.2f", newTree.average(currentSemesterOnly: true, scoreFormat: .grades))
+            totalAverage = String(format: "%0.2f", newTree.average(currentSemesterOnly: false, scoreFormat: .grades))
+            totalPoints = ""
+        case .points:
+            currentAverage = String(
+                format: "%0.2f (%0.2f Punkte)",
+                newTree.average(currentSemesterOnly: true, scoreFormat: .grades),
+                newTree.average(currentSemesterOnly: true, scoreFormat: .points)
+            )
+            totalAverage = String(
+                format: "%0.2f (%0.2f Punkte)",
+                newTree.average(currentSemesterOnly: false, scoreFormat: .grades),
+                newTree.average(currentSemesterOnly: false, scoreFormat: .points)
+            )
+            totalPoints = "Gesamtpunktzahl: \(newTree.totalPoints)"
+        }
         let bold = format == .markdown ? "*" : ""
         let result = """
                      🎓 \(bold)\(nickname)\(bold) 👨‍🏫
 
-                     \(diff.prettyText(format: format))
+                     \(diff.prettyText(format: format, usePoints: scoreFormat == .points))
                      
                      \(bold)Notenschnitt\(bold)\(format == .ascii ? "\n------------------------" : "")
                      \(averages)
+                     
                      Halbjahresschnitt: \(currentAverage)
                      Jahresschnitt: \(totalAverage)
+                     \(totalPoints)
                      """
         return result
     }
@@ -211,20 +241,23 @@ command(
         guard OutputFormat.allCases.map({$0.rawValue}).contains(value) else { throw ParameterError.output }
         return value
     }),
+    Option("input", default: "grades", flag: "i", description: "Input as grades or points"),
     Option("previousState", default: nil, flag: "p", description: "previous state file in json-format", validator: { (value) -> String? in return value }),
     Option("token", default: nil, flag: "t", description: "Telegram API token and chat ID, joined by a +, i.e. -t 123456781:DDEFHjcBgo-dkwpsJswEe+-6573342", validator: { (value) -> String? in return value }),
     Argument<String>("nickname", description: "Used in the report only, helps to distuinguish multiple reports"),
     Argument<String>("username", description: "Username (provided by the school)"),
     Argument<String>("password", description: "Password (provided by the school)"),
     Argument<String>("url", description: "Address of the Home.Infopoint installation, i.e. https://www.name-of-the-school.de/homeInfoPoint/")
-) { output, previousState, telegram, nickname, username, password, url in
+) { output, input, previousState, telegram, nickname, username, password, url in
     let out: OutputFormat = output.map { (OutputFormat(rawValue: $0) ?? .ascii) } ?? .ascii
+    let scoreFormat: ScoreFormat = ScoreFormat(rawValue: input) ?? .grades
     HipClient(nickname: nickname,
               user: username,
               password: password,
               previousFile: previousState,
               url: url,
               output: out,
+              scoreFormat: scoreFormat,
               telegram: telegram).run()
    }.run()
 

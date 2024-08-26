@@ -56,8 +56,8 @@ public class HipTree: Codable, Equatable {
         return courses.filter({ $0.name == named }).first
     }
     
-    public func prettyText(format: OutputFormat = .ascii) -> String {
-        let courses = courses.map { $0.prettyText(format: format) }
+    public func prettyText(format: OutputFormat = .ascii, usePoints: Bool) -> String {
+        let courses = courses.map { $0.prettyText(format: format, usePoints: usePoints) }
         
         let dahBody = dah.map { $0.prettyText(format: format) }
         let dahHeadline = """
@@ -69,9 +69,9 @@ public class HipTree: Codable, Equatable {
         return (courses + dah).joined(separator: "\n\n")
     }
     
-    public func prettyTextWithAverage(format: OutputFormat = .ascii) -> String {
-        let coursesText = courses.map { $0.prettyText(format: format) }.joined(separator: "\n\n")
-        let averageText = String(format: "%0.1f", totalAverage)
+    public func prettyTextWithAverage(format: OutputFormat = .ascii, scoreFormat: ScoreFormat) -> String {
+        let coursesText = courses.map { $0.prettyText(format: format, usePoints: scoreFormat == .points) }.joined(separator: "\n\n")
+        let averageText = String(format: "%0.1f", average(currentSemesterOnly: false, scoreFormat: scoreFormat))
         
         return """
                \(coursesText)
@@ -94,35 +94,22 @@ public class HipTree: Codable, Equatable {
         return .second
     }
     
-    public var totalAverage: Double {
-        averageGrade(currentSemesterOnly: false)
-    }
-
-    public var currentSemesterAverage: Double {
-        averageGrade(currentSemesterOnly: true)
-    }
-    
-    private func averageGrade(currentSemesterOnly: Bool) -> Double {
-        func include(grade: HipGrade, currentSemesterOnly: Bool) -> Bool {
-            // semester filer && ignore all non-grades like "A"
-            return (currentSemesterOnly ? grade.semester == currentSemester : true) // && grade.points != nil
-        }
-
-        guard courses.count > 0 else { return 0 }
-        let allGrades: [HipGrade] = courses
-            .map{ $0.allGrades }
-            .flatMap { $0 } // flatten the 2 dimensional array
-            .filter { include(grade: $0, currentSemesterOnly: currentSemesterOnly) }
-
+    public func average(currentSemesterOnly: Bool, scoreFormat: ScoreFormat) -> Double {
         // count all valid (non-nil) grades
-        let allPoints: [Int] = allGrades.compactMap { $0.points }
+        let allPoints = allPoints(currentSemesterOnly: currentSemesterOnly)
         let gradeCount = allPoints.count
         guard gradeCount > 0 else { return 0 }
         let averagePoints =  Double(allPoints.reduce(0) { $0 + $1 }) / Double(gradeCount)
-        // Points -> grade
-        return (17 - averagePoints)  / 3
+        
+        switch scoreFormat {
+        case .grades:
+            // Points -> grade
+            return (17 - averagePoints)  / 3
+        case .points:
+            return averagePoints
+        }
     }
-
+    
     public var asJSON: String {
         let je = JSONEncoder.init()
         je.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -134,5 +121,30 @@ public class HipTree: Codable, Equatable {
             print(error.localizedDescription)
         }
         return json
+    }
+    
+    public var totalPoints: Int {
+        let allPoints = allPoints(currentSemesterOnly: false)
+        let gradeCount = allPoints.count
+        guard gradeCount > 0 else { return 0 }
+        let totalPoints =  allPoints.reduce(0) { $0 + $1 }
+        return totalPoints
+    }
+    
+    private func allPoints(currentSemesterOnly: Bool) -> [Int] {
+        func include(grade: HipGrade, currentSemesterOnly: Bool) -> Bool {
+            // semester filer && ignore all non-grades like "A"
+            return (currentSemesterOnly ? grade.semester == currentSemester : true) // && grade.points != nil
+        }
+
+        guard courses.count > 0 else { return [] }
+        let allGrades: [HipGrade] = courses
+            .map{ $0.allGrades }
+            .flatMap { $0 } // flatten the 2 dimensional array
+            .filter { include(grade: $0, currentSemesterOnly: false) }
+
+        // count all valid (non-nil) grades
+        let allPoints: [Int] = allGrades.compactMap { $0.points }
+        return allPoints
     }
 }

@@ -36,6 +36,19 @@ public class HipGrade: Codable, Equatable, Hashable {
         self.weight = weight
         self.semester = HipSemester(rawValue: semester) ?? .first
     }
+    
+    public init(date: String, points: String, remark: String, weight: String, semester: String) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "de_DE")
+        dateFormatter.dateFormat = "dd.MM.yyyy"
+        self.date = dateFormatter.date(from:date) ?? Date()
+
+        self.dateString = date
+        self.points = Int(points)
+        self.remark = remark
+        self.weight = weight
+        self.semester = HipSemester(rawValue: semester) ?? .first
+    }
 
     public static func == (lhs: HipGrade, rhs: HipGrade) -> Bool {
         return lhs.date == rhs.date
@@ -99,8 +112,9 @@ public class HipGrade: Codable, Equatable, Hashable {
         return "\(Int(mark.rounded()))\(modifier)"
     }
     
-    public func prettyText(format: OutputFormat = .ascii) -> String {
+    
+    public func prettyText(format: OutputFormat = .ascii, usePoints: Bool) -> String {
         let bold = (format == .markdown) ? "*" : ""
-        return "\(bold)\(points.map { HipGrade.pointsAsGrade(points:$0) } ?? "A")\(bold)\t\(remark) (\(dateString))"
+        return "\(bold)\(points.map { HipGrade.pointsAsGrade(points:$0) + (usePoints ? " (\($0) Punkte)" : "") } ?? "A")\(bold)\t\(remark) (\(dateString))"
     }
 }

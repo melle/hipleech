@@ -26,7 +26,7 @@ class HipCourseTests: XCTestCase {
         let ma = HipCourse(name: "ma - Mathematik", grades: [mark1, mark2])
 
         // when
-        let result = ma.prettyTextWithAverage()
+        let result = ma.prettyTextWithAverage(score: .grades)
         
         // then
         XCTAssertEqual(result,
@@ -55,7 +55,7 @@ class HipCourseTests: XCTestCase {
 
         // then
         XCTAssertEqual(ma.average, 2.0)
-        XCTAssertEqual(ma.currentAverage, 2.0)
+        XCTAssertEqual(ma.currentAverage(as: .grades), 2.0)
     }
     
     func testAverageFirstSemester() {
@@ -72,7 +72,7 @@ class HipCourseTests: XCTestCase {
 
         // then
         XCTAssertEqual(ma.average, 2.0)
-        XCTAssertEqual(ma.currentAverage, 2.0)
+        XCTAssertEqual(ma.currentAverage(as: .grades), 2.0)
     }
     
     func testAverageSecondSemester() {
@@ -87,7 +87,7 @@ class HipCourseTests: XCTestCase {
 
         // then
         XCTAssertEqual(ma.average, 2.0)
-        XCTAssertEqual(ma.currentAverage, 2.0)
+        XCTAssertEqual(ma.currentAverage(as: .grades), 2.0)
     }
     
     func testAverageMixedSemesters() {
@@ -110,7 +110,7 @@ class HipCourseTests: XCTestCase {
 
         // then
         XCTAssertEqual(ma.average, 1.5)
-        XCTAssertEqual(ma.currentAverage, 1.0)
+        XCTAssertEqual(ma.currentAverage(as: .grades), 1.0)
     }
     
     func testAverageWithA() throws {
@@ -133,7 +133,7 @@ class HipCourseTests: XCTestCase {
         let ma = HipCourse(name: "ma - Mathematik", grades: [grade1, grade2, grade3])
         
         // when
-        let average = ma.currentAverage
+        let average = ma.currentAverage(as: .grades)
         
         // then
         XCTAssertEqual(average, 2.0)

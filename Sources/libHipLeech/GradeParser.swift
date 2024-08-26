@@ -15,7 +15,7 @@ public class GradeParser {
         case exception(Error)
     }
     
-    public static func parse(html: String) -> Result<HipTree, GradeParser.ParserError>  {
+    public static func parse(html: String, scoreFormat: ScoreFormat = .grades) -> Result<HipTree, GradeParser.ParserError>  {
         
         do {
             let doc: Document = try SwiftSoup.parse(html)
@@ -33,11 +33,25 @@ public class GradeParser {
                     let col = try row.getElementsByTag("td").array()
                     guard col.count != 0 else { continue }
                     if col.count == 5 {
-                        let grade = HipGrade(date: try col[0].text(),
-                                           grade: try col[1].text(),
-                                           remark: try col[2].text(),
-                                           weight: try col[3].text(),
-                                           semester: try col[4].text())
+                        let grade: HipGrade
+                        switch scoreFormat {
+                        case .grades:
+                            grade = HipGrade(
+                                date: try col[0].text(),
+                                grade: try col[1].text(),
+                                remark: try col[2].text(),
+                                weight: try col[3].text(),
+                                semester: try col[4].text()
+                            )
+                        case .points:
+                            grade = HipGrade(
+                                date: try col[0].text(),
+                                points: try col[1].text(),
+                                remark: try col[2].text(),
+                                weight: try col[3].text(),
+                                semester: try col[4].text()
+                            )
+                        }
                         let courseName = try courses[i].text()
                         if let course = tree.courses.filter({ $0.name == courseName  }).first {
                             course.addGrade(grade)
