@@ -70,7 +70,12 @@ public class HipCourse: Codable, Equatable {
     }
 
     public func prettyTextWithAverage(format: OutputFormat = .ascii, score: ScoreFormat) -> String {
-        let averageString = String(format: "%.01f", currentAverage(as: score))
+        let averageString: String
+        if let average = currentAverage(as: score) {
+            averageString = String(format: "%.01f", average)
+        } else {
+            averageString = "∅"
+        }
         let text = """
                    \(prettyText(format: format, usePoints: score == .points))
                    
@@ -92,16 +97,27 @@ public class HipCourse: Codable, Equatable {
     }
 
     /// Average for the current Semester
-    public func currentAverage(as format: ScoreFormat) -> Double {
-        switch format {
-        case .grades:
-            (17 - currentAveragePoints)  / 3
-        case .points:
-            currentAveragePoints
+    public func currentAverageString(as format: ScoreFormat) -> String {
+        if let points = currentAverage(as: format) {
+            return String(format: "%.01f", points)
+        } else {
+            return "∅"
         }
     }
 
-    private var currentAveragePoints: Double {
+
+    public func currentAverage(as format: ScoreFormat) -> Double? {
+        guard let points = currentAveragePoints else { return nil }
+
+        return switch format {
+        case .grades:
+            (17 - points)  / 3
+        case .points:
+            points
+        }
+    }
+
+    private var currentAveragePoints: Double? {
         let firstSemesterGrades = grades.filter({ HipSemester.first == $0.semester })
         let secondSemesterGrades = grades.filter({ HipSemester.second == $0.semester })
         // there are second semester grades? Use 2nd, else use the first semester grades
@@ -111,7 +127,7 @@ public class HipCourse: Codable, Equatable {
             .map { $0.points }
             .compactMap{ $0 }
             .reduce(0) { sum, nextPoint in sum + 1 }
-        guard gradeCount > 0 else {return 0 }
+        guard gradeCount > 0 else { return nil }
 
         let averagePoints =  Double(relevantGrades.compactMap { $0.points }.reduce(0) { $0 + $1 }) / Double(gradeCount)
         

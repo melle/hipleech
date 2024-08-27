@@ -133,9 +133,9 @@ public class HipClient {
                 let avgString: String
                 switch score {
                 case .grades:
-                    avgString = String(format: "%0.2f", course.currentAverage(as: score))
+                    avgString = course.currentAverageString(as: score)
                 case .points:
-                    avgString = String(format: "%0.2f (%0.2f Punkte)", course.currentAverage(as: .grades), course.currentAverage(as: .points))
+                    avgString = String(format: "%@ (%@ Punkte)", course.currentAverageString(as: .grades), course.currentAverageString(as: .points))
                 }
                 return "\(course.prettyName(format: .ascii)): \(avgString)"
             }

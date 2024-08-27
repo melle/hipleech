@@ -139,5 +139,23 @@ class HipCourseTests: XCTestCase {
         XCTAssertEqual(average, 2.0)
     }
 
+    func testAverageOnlyWithA() throws {
+        // given
+        let grade1 = HipGrade(date: "05.02.2020",
+                             grade: "A", // <---
+                             remark: "Schokoladenwettessen",
+                             weight: "Standard / Einfach",
+                             semester: "1.")
+        let ma = HipCourse(name: "ma - Mathematik", grades: [grade1])
+        
+        // when
+        let average = ma.currentAverage(as: .grades)
+        let averageStr = ma.currentAverageString(as: .grades)
+        
+        // then
+        XCTAssertNil(average)
+        XCTAssertEqual(averageStr, "∅")
+    }
+
     //  - as soon as we do have grades from the second semester, calculate only the second semester
 }
