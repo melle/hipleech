@@ -115,6 +115,13 @@ public class HipGrade: Codable, Equatable, Hashable {
     
     public func prettyText(format: OutputFormat = .ascii, usePoints: Bool) -> String {
         let bold = (format == .markdown) ? "*" : ""
-        return "\(bold)\(points.map { HipGrade.pointsAsGrade(points:$0) + (usePoints ? " (\($0) Punkte)" : "") } ?? "A")\(bold)\t\(remark) (\(dateString))"
+        
+        // Define allowed characters: alphanumeric and space
+        let allowedCharacters = CharacterSet.alphanumerics.union(.whitespaces)
+
+        // Filter remark to only include allowed characters
+        let sanitizedRemark = remark.unicodeScalars.filter { allowedCharacters.contains($0) }.map { String($0) }.joined()
+        
+        return "\(bold)\(points.map { HipGrade.pointsAsGrade(points:$0) + (usePoints ? " (\($0) Punkte)" : "") } ?? "A")\(bold)\t\(sanitizedRemark) (\(dateString))"
     }
 }
