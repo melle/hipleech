@@ -141,7 +141,7 @@ public class HipTree: Codable, Equatable {
         let allGrades: [HipGrade] = courses
             .map{ $0.allGrades }
             .flatMap { $0 } // flatten the 2 dimensional array
-            .filter { include(grade: $0, currentSemesterOnly: false) }
+            .filter { include(grade: $0, currentSemesterOnly: currentSemesterOnly) }
 
         // count all valid (non-nil) grades
         let allPoints: [Int] = allGrades.compactMap { $0.points }
